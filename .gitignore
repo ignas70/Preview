@@ -1,0 +1,8 @@
+build/
+dist/
+obj/
+pkg/
+testfiles/
+PDF-redaktorius.html
+*.png
+!app/**/*.png

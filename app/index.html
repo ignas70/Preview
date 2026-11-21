@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview</title>
+<link rel="icon" href="icon.png">
+<script>
+  // apply the saved theme before first paint (no light flash on dark systems)
+  (function () {
+    var m = 'auto'; try { m = localStorage.getItem('preview.theme') || 'auto'; } catch (e) { }
+    var dark = m === 'dark' || (m === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    // start reading the file and loading its viewer before the rest of the page has loaded
+    var q = new URLSearchParams(location.search).get('path');
+    if (q && window.chrome && chrome.webview) {
+      var ext = ((q.match(/\.([^.\\/]+)$/) || [])[1] || '').toLowerCase();
+      // PDFs: ask for the size first – large ones are then read piece by piece
+      window.__early = { path: q, res: fetch('https://file.preview/?p=' + encodeURIComponent(q) + (ext === 'pdf' ? '&stat=1' : '')) };
+      var libs = { pdf: ['pdf.min.js'], docx: ['jszip.min.js', 'docx-preview.min.js'], docm: ['jszip.min.js', 'docx-preview.min.js'],
+        xlsx: ['xlsx.full.min.js'], xls: ['xlsx.full.min.js'], xlsm: ['xlsx.full.min.js'], csv: ['xlsx.full.min.js'], ods: ['xlsx.full.min.js'], numbers: ['xlsx.full.min.js'],
+        pptx: ['pptx-preview.umd.js'], ppsx: ['pptx-preview.umd.js'], pages: ['jszip.min.js', 'iwork.js'], key: ['jszip.min.js', 'iwork.js'] }[ext] || [];
+      libs.forEach(function (n) { var l = document.createElement('link'); l.rel = 'preload'; l.as = 'script'; l.href = 'lib/' + n; document.head.appendChild(l); });
+    }
+  })();
+</script>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+<script src="pdfx.js" defer></script>
+<script src="sheetx.js" defer></script>
+<script src="ocr.js" defer></script>
+<script src="esign.js" defer></script>
+<script src="pdfedit.js" defer></script>
+</head>
+<body data-tool="select" data-mode="home">
+
+<!-- ================= start screen ================= -->
+<section id="home">
+  <div class="homeCard">
+    <div class="brand">
+      <img src="icon.png" alt="">
+      <div><h1>Preview</h1><p>View documents instantly. Sign and edit PDFs.</p></div>
+      <span class="spacer"></span>
+      <button class="ib keysBtn" title="Keyboard shortcuts (F1)"><span class="g">&#xE765;</span></button>
+      <button class="ib hostOnly" id="toSettings" title="Settings"><span class="g">&#xE713;</span></button>
+    </div>
+    <div id="homeDrop">
+      <span class="g big">&#xE838;</span>
+      <div class="lead">Drop a file here</div>
+      <div class="hint">Nothing is uploaded – everything stays on this PC.</div>
+      <button class="btn primary" id="homeOpen">Open file…</button>
+    </div>
+    <div class="formats">
+      <span class="chip"><span class="badge pdf">PDF</span>PDF</span>
+      <span class="chip"><span class="badge word">W</span>Word</span>
+      <span class="chip"><span class="badge excel">X</span>Excel, CSV</span>
+      <span class="chip"><span class="badge ppt">P</span>PowerPoint</span>
+      <span class="chip"><span class="badge apple">A</span>Pages, Numbers, Keynote</span>
+      <span class="chip"><span class="badge google">G</span>Google Docs, Sheets, Slides</span>
+    </div>
+    <div id="recentWrap" hidden>
+      <h3>Recent</h3>
+      <div id="recent"></div>
+    </div>
+    <div id="settingsWrap">
+      <h3>Settings</h3>
+      <div class="setRow"><span><b>Theme</b><span class="hint">Auto follows the Windows light/dark setting.</span></span>
+        <div class="seg" id="themeSeg"><button data-t="auto">Auto</button><button data-t="light">Light</button><button data-t="dark">Dark</button></div></div>
+      <label class="setRow hostOnly"><span><b>Open files in tabs</b><span class="hint">New files open as a tab in the current window instead of a new window.</span></span><input type="checkbox" class="switch" id="setTabs"></label>
+      <label class="setRow hostOnly"><span><b>Start with Windows</b><span class="hint">Keeps Preview ready in the background so even the first file opens instantly (uses about 100 MB of memory).</span></span><input type="checkbox" class="switch" id="setStartup"></label>
+      <div class="setRow hostOnly"><span><b>Updates</b><span class="hint" id="updInfo">Checks GitHub for new versions.</span></span><div class="updActs"><button class="btn" id="updBtn">Check now</button><label title="Check automatically"><input type="checkbox" class="switch" id="setUpdates"></label></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= documents (Word, Excel, PowerPoint, Apple, Google, text) ================= -->
+<section id="docApp">
+  <header class="bar">
+    <div class="split"><button class="tb openAny" title="Open a file (Ctrl+O)"><span class="g">&#xE838;</span>Open</button><button class="ib recentBtn" title="Recent files"><span class="g">&#xE70D;</span></button></div>
+    <div class="title"><b id="docName"></b><span id="docKind"></span></div>
+    <span class="spacer"></span>
+    <div class="zoom">
+      <button class="ib" id="docZoomOut" title="Zoom out (Ctrl −)"><span class="g">&#xE71F;</span></button>
+      <span class="val" id="docZoomLabel" title="Reset zoom (Ctrl+0)">100%</span>
+      <button class="ib" id="docZoomIn" title="Zoom in (Ctrl +)"><span class="g">&#xE8A3;</span></button>
+    </div>
+    <span class="spacer"></span>
+    <button class="ib" id="docPresent" title="Present full screen (F5)" hidden><span class="g">&#xE786;</span></button>
+    <button class="ib nightBtn" title="Night reading – invert the page, keep pictures (N)"><span class="g">&#xE736;</span></button>
+    <button class="ib" id="btnDocMore" title="More"><span class="g">&#xE712;</span></button>
+    <button class="btn" id="docPdf" title="Save as PDF – then you can sign or annotate it" style="margin-left:6px"><span class="g">&#xE74E;</span>Save as PDF</button>
+  </header>
+  <div id="docSigBanner" class="sigBanner" hidden></div>
+  <div id="docBody"><div id="docInner"></div></div>
+</section>
+
+<!-- ================= PDF ================= -->
+<section id="pdfApp">
+  <header class="bar">
+    <div class="split"><button class="tb openAny" title="Open a file (Ctrl+O)"><span class="g">&#xE838;</span>Open</button><button class="ib recentBtn" title="Recent files"><span class="g">&#xE70D;</span></button></div>
+    <button class="ib" id="btnSidebar" title="Show or hide the page panel (Ctrl+B)"><span class="g">&#xEA5B;</span></button>
+    <div class="title"><b id="pdfName"></b><span id="pdfInfo"></span></div>
+    <span class="spacer"></span>
+    <div class="seg" id="modeSeg">
+      <button id="btnView" class="on" title="Read (Esc)"><span class="g">&#xE7B3;</span>View</button>
+      <button id="btnEdit" title="Sign, add text, organise pages (E)"><span class="g">&#xE70F;</span>Edit</button>
+    </div>
+    <span class="spacer"></span>
+    <div class="zoom">
+      <button class="ib" id="zoomOut" title="Zoom out (Ctrl −)"><span class="g">&#xE71F;</span></button>
+      <span class="val" id="zoomLabel" title="Fit width (Ctrl+0)">100%</span>
+      <button class="ib" id="zoomIn" title="Zoom in (Ctrl +)"><span class="g">&#xE8A3;</span></button>
+      <button class="ib" id="zoomFit" title="Fit width (Ctrl+0)"><span class="g">&#xE9A6;</span></button>
+    </div>
+    <span class="sep"></span>
+    <div class="pager"><input type="number" id="pageNum" min="1" value="1" title="Go to page"><span>/ <span id="pageTotal">0</span></span></div>
+    <span class="sep"></span>
+    <button class="ib" id="btnFind" title="Find (Ctrl+F)"><span class="g">&#xE721;</span></button>
+    <button class="ib" id="btnPresent" title="Present full screen (F5)"><span class="g">&#xE786;</span></button>
+    <button class="ib nightBtn" title="Night reading – invert pages, keep pictures (N)"><span class="g">&#xE736;</span></button>
+    <button class="ib" id="btnPdfMore" title="More"><span class="g">&#xE712;</span></button>
+    <button id="btnSave" class="btn primary" title="Save as PDF (Ctrl+S)" style="margin-left:6px"><span class="g">&#xE74E;</span>Save</button>
+  </header>
+
+  <div class="bar toolbar edit-only">
+    <div class="tools" id="tools">
+      <button class="tb active" data-tool="select" title="Select and move (V)"><span class="g">&#xE8B0;</span>Select</button>
+      <button class="tb" data-tool="text" title="Add text (T)"><span class="g">&#xE8D2;</span>Text</button>
+      <button class="tb" data-tool="edittext" title="Edit text – click a line of the PDF's own text to change it (X)"><span class="g">&#xE70F;</span>Edit text</button>
+      <button class="tb" data-tool="sign" title="Sign (S)"><span class="g">&#xEE56;</span>Sign</button>
+      <button class="tb" data-tool="stamp" title="Stamp today's date, your name or initials (D)"><span class="g">&#xE787;</span>Stamp</button>
+      <button class="tb" data-tool="image" title="Insert image (I)"><span class="g">&#xE8B9;</span>Image</button>
+      <button class="tb" data-tool="whiteout" title="White-out – cover text with a box (W)"><span class="g">&#xE75C;</span>White-out</button>
+      <button class="tb" data-tool="highlight" title="Highlight (H)"><span class="g">&#xE7E6;</span>Highlight</button>
+      <button class="tb" data-tool="pen" title="Draw (P)"><span class="g">&#xE76D;</span>Draw</button>
+      <button class="tb" data-tool="note" title="Sticky note (C)"><span class="g">&#xE70B;</span>Note</button>
+    </div>
+    <span class="sep"></span>
+    <input type="color" id="color" value="#111111" title="Colour">
+    <input type="number" id="fontSize" value="14" min="4" max="200" title="Text size (pt)" style="width:48px;text-align:center"><span class="hint">pt</span>
+    <span class="sep"></span>
+    <button class="ib" id="btnUndo" title="Undo (Ctrl+Z)"><span class="g">&#xE7A7;</span></button>
+    <button class="ib" id="btnRedo" title="Redo (Ctrl+Y)"><span class="g">&#xE7A6;</span></button>
+    <span class="spacer"></span>
+    <button class="tb" id="btnAdd" title="Append another PDF (merge)"><span class="g">&#xE710;</span>Add PDF</button>
+  </div>
+
+  <div id="main">
+    <aside id="sidebar">
+      <div id="sideTabs" class="seg" hidden>
+        <button data-side="pages" class="on">Pages</button>
+        <button data-side="outline">Contents</button>
+      </div>
+      <div id="outline" hidden></div>
+      <div id="sideHead">
+        <div id="selInfo">Pages</div>
+        <div id="sideActions" class="edit-only">
+          <button class="ib" id="rotL" title="Rotate left"><span class="g" style="transform:scaleX(-1)">&#xE7AD;</span></button>
+          <button class="ib" id="rotR" title="Rotate right"><span class="g">&#xE7AD;</span></button>
+          <button class="ib" id="delPages" title="Delete pages (Delete)"><span class="g">&#xE74D;</span></button>
+          <button class="ib" id="extract" title="Save selected pages as a new PDF"><span class="g">&#xE8C8;</span></button>
+        </div>
+      </div>
+      <div id="thumbs"></div>
+    </aside>
+    <div id="viewerWrap">
+      <div id="pdfSigBanner" class="sigBanner" hidden></div>
+      <section id="viewer">
+        <div id="pagesWrap"></div>
+        <div id="empty">No pages</div>
+      </section>
+      <div id="findBar" hidden>
+        <span class="g">&#xE721;</span>
+        <input id="findInput" placeholder="Find in document" spellcheck="false">
+        <span id="findCount"></span>
+        <button class="ib" id="findPrev" title="Previous (Shift+Enter)"><span class="g">&#xE70E;</span></button>
+        <button class="ib" id="findNext" title="Next (Enter)"><span class="g">&#xE70D;</span></button>
+        <button class="ib" id="findClose" title="Close (Esc)"><span class="g">&#xE711;</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<input type="file" id="fileOpen" multiple hidden>
+<input type="file" id="fileAdd" accept="application/pdf,.pdf,image/*" multiple hidden>
+<input type="file" id="fileImg" accept="image/*" hidden>
+<img id="ghost" alt="">
+<div id="present" hidden><div class="showStage"></div><div class="showBar"><span class="showCount"></span><button class="showExit" title="Exit (Esc)"><span class="g">&#xE711;</span></button></div></div>
+<div id="printBox"></div>
+<div id="ocrBar" hidden><span class="spin"></span><span id="ocrLabel"></span><button id="ocrCancel">Cancel</button></div>
+<div id="dropOverlay">Drop to open</div>
+<div id="toast"></div>
+<div id="busy"></div>
+
+<dialog id="keysDlg" autofocus>
+  <div class="dlgHead"><span class="g" style="font-size:18px;color:var(--accent)">&#xE765;</span><h3>Keyboard shortcuts</h3><button class="ib" id="keysClose" title="Close (Esc)"><span class="g">&#xE711;</span></button></div>
+  <div class="dlgBody keys">
+    <div><h4>Everywhere</h4>
+      <p><kbd>Ctrl+O</kbd>Open a file</p><p><kbd>Ctrl+T</kbd>New tab</p><p><kbd>Ctrl+W</kbd>Close tab</p><p><kbd>Ctrl+Tab</kbd>Next tab</p>
+      <p><kbd>Ctrl +</kbd> <kbd>Ctrl −</kbd>Zoom</p><p><kbd>Ctrl+0</kbd>Fit / reset zoom</p><p><kbd>N</kbd>Night reading</p><p><kbd>F5</kbd>Present full screen</p><p><kbd>F1</kbd>This list</p></div>
+    <div><h4>PDF</h4>
+      <p><kbd>Ctrl+F</kbd>Find</p><p><kbd>F3</kbd>Next match</p><p><kbd>Ctrl+P</kbd>Print</p><p><kbd>Ctrl+S</kbd>Save</p><p><kbd>Ctrl+B</kbd>Page panel</p>
+      <p><kbd>E</kbd>Edit · <kbd>Esc</kbd> back to View</p><p><kbd>Ctrl+Z</kbd> <kbd>Ctrl+Y</kbd>Undo / redo</p></div>
+    <div><h4>Edit tools</h4>
+      <p><kbd>V</kbd>Select</p><p><kbd>T</kbd>Text</p><p><kbd>X</kbd>Edit text</p><p><kbd>S</kbd>Sign</p><p><kbd>D</kbd>Stamp</p><p><kbd>I</kbd>Image</p><p><kbd>W</kbd>White-out</p><p><kbd>H</kbd>Highlight</p><p><kbd>P</kbd>Draw</p><p><kbd>C</kbd>Note</p><p><kbd>Delete</kbd>Delete selection</p></div>
+  </div>
+</dialog>
+
+<dialog id="sigDlg">
+  <div class="dlgHead"><span class="g" style="font-size:18px;color:var(--accent)">&#xE8D7;</span><h3>Digital signatures</h3><button class="ib" onclick="this.closest('dialog').close()" title="Close (Esc)"><span class="g">&#xE711;</span></button></div>
+  <div class="dlgBody"><div class="sigList"></div><p class="sigNote hint"></p></div>
+</dialog>
+
+<dialog id="profileDlg" class="small">
+  <div class="dlgHead"><span class="g" style="font-size:18px;color:var(--accent)">&#xE77B;</span><h3>Your name for stamps</h3></div>
+  <div class="dlgBody">
+    <p class="hint" style="margin:0 0 10px;font-size:13px">Used for quick name, initials and date stamps. Stored only on this PC.</p>
+    <input id="pfName" placeholder="Full name" spellcheck="false" style="width:100%;padding:8px 10px;margin-bottom:8px">
+    <input id="pfIni" spellcheck="false" style="width:100%;padding:8px 10px">
+  </div>
+  <div class="dlgFoot"><button class="btn" id="pfCancel">Skip</button><button class="btn primary" id="pfOk">Save</button></div>
+</dialog>
+
+<dialog id="pwDlg" class="small">
+  <div class="dlgHead"><span class="g" style="font-size:18px;color:var(--accent)">&#xE72E;</span><h3>Protected PDF</h3></div>
+  <div class="dlgBody">
+    <p id="pwMsg" class="hint" style="margin:0 0 10px;font-size:13px"></p>
+    <input type="password" id="pwInput" placeholder="Password" style="width:100%;padding:8px 10px">
+  </div>
+  <div class="dlgFoot">
+    <button class="btn" id="pwCancel">Cancel</button>
+    <button class="btn primary" id="pwOk">Open</button>
+  </div>
+</dialog>
+
+<dialog id="signDlg">
+  <div class="dlgHead">
+    <h3>Signature</h3>
+    <div class="seg tabs">
+      <button data-tab="draw" class="active">Draw</button>
+      <button data-tab="type">Type</button>
+      <button data-tab="upload">Image</button>
+    </div>
+  </div>
+  <div class="dlgBody">
+    <div class="tab" data-tab="draw">
+      <canvas id="sigPad"></canvas>
+      <div class="row">
+        <button class="swatch on" data-c="#111111" style="background:#111111" title="Black"></button>
+        <button class="swatch" data-c="#1d3fbf" style="background:#1d3fbf" title="Blue"></button>
+        <span class="hint">Sign with the mouse, pen or finger</span>
+        <span class="spacer"></span>
+        <button class="btn" id="sigClear">Clear</button>
+      </div>
+    </div>
+    <div class="tab" data-tab="type" hidden>
+      <input id="sigText" placeholder="Your name" maxlength="60">
+      <div id="sigPreview"></div>
+    </div>
+    <div class="tab" data-tab="upload" hidden>
+      <input type="file" id="sigFile" accept="image/*">
+      <img id="sigUploadPrev" alt="" hidden>
+      <div class="hint" style="margin-top:6px">A PNG with a transparent background works best.</div>
+    </div>
+    <div id="savedWrap" hidden>
+      <div class="hint" style="margin-top:16px">Saved signatures</div>
+      <div id="savedSigs"></div>
+    </div>
+  </div>
+  <div class="dlgFoot">
+    <button class="btn" id="sigCancel">Cancel</button>
+    <button class="btn primary" id="sigUse">Use signature</button>
+  </div>
+</dialog>
+</body>
+</html>
