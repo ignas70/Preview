@@ -13,7 +13,12 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
 - Build installer: `.\build.ps1 -Setup` -> `dist\Preview-<version>-Setup.exe`.
 - Run: `.\build\Preview.exe <file>`.
 - UI test / screenshot: `.\tools\snap.ps1 -File <doc> -Out <png> -Script tools\tests\<name>.js`
-  (sets `PREVIEW_EVAL`, which `host/DocTab.cs` runs after the page loads).
+  (sets `PREVIEW_EVAL`, which `host/DocTab.cs` runs after the page loads). Set `PREVIEW_TRACE=1`
+  to get `mark()` results in `%LOCALAPPDATA%\Preview\trace.txt`. In PowerShell put the
+  `PREVIEW_EVAL` value in single quotes (double quotes expand `$()`).
+- Timing: `tools\measure.ps1` (cold) and `tools\measure-warm.ps1`. Measure, don't assume.
+- Install for me (per-user, HKCU file types): `build\install.ps1`. A security product blocks
+  HKLM ProgIDs, so Settings can't list Preview as a default app (see `register-machine.ps1`).
 - Browser preview of `app/`: launch config `preview-web` in `C:\Dev\.claude\launch.json`.
 - Release (ask first, outward-facing): bump `version.txt`, `.\build.ps1 -Setup`, then
   `gh release create v<ver> dist\Preview-<ver>-Setup.exe --title "Preview <ver>" --notes "..."`.
@@ -24,7 +29,8 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
 - `testfiles/` (sample documents, may be private).
 
 ## Conventions
-- UI text is Lithuanian; code and comments are English.
+- UI is English and must look like my other apps (Shot, APFS Reader): see "My desktop apps"
+  in the global CLAUDE.md.
 - Keep `app/` dependency-free: no npm, no build step for the UI.
 - One feature per commit; version lives in `version.txt`.
 
