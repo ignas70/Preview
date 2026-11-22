@@ -30,6 +30,13 @@ test(async () => {
   check('Enter finishes editing a line instead of adding one', document.activeElement !== ed && !p.annots.some(x => x.type === 'edit' && /\n/.test(x.text)));
   check('third edit kept', p.annots.filter(x => x.type === 'edit').length === 3);
 
+  const texts = pr => stampTexts(pr, '2026-01-02').map(s => s.text).join(' | ');
+  check('stamp texts without a name: only the date', texts({}) === '2026-01-02', texts({}));
+  const ona = texts({ name: 'Ona Petraitytė', initials: 'O. P.' });
+  check('stamp texts with a name and own initials',
+    ona === '2026-01-02 | Ona Petraitytė | O. P. | Ona Petraitytė, 2026-01-02 | O. P. 2026-01-02', ona);
+  check('initials made from the name', initialsOf('ona petraitytė-kazlauskienė') === 'O. P. K.', initialsOf('ona petraitytė-kazlauskienė'));
+
   Profile.set({ name: 'Jonas Jonaitis', asked: true });
   const labels = stampItems().filter(x => x !== '-').map(x => x.label);
   check('stamp menu offers date, name, initials', labels.includes(todayStr()) && labels.includes('Jonas Jonaitis') && labels.includes('J. J.'), labels.join(' | '));
