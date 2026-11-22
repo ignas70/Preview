@@ -82,6 +82,7 @@ async function textLines(p) {
   const key = p.docId + ':' + p.idx;
   if (lineCache.has(key)) return lineCache.get(key);
   const pg = await realPage(p), tc = await pg.getTextContent();
+  await pg.getOperatorList();   // loads the page's fonts, so their names are known even before it is drawn
   const v1 = pg.getViewport({ scale: 1, rotation: 0 });
   const items = [];
   for (const it of tc.items) {
@@ -125,6 +126,8 @@ function sampleColors(p, l) {
   const x0 = Math.max(0, Math.floor((l.x - 3) * k)), y0 = Math.max(0, Math.floor(l.top * k)), w = Math.min(c.width - x0, Math.ceil((l.w + 6) * k)), h = Math.min(c.height - y0, Math.ceil(l.h * k));
   if (w <= 0 || h <= 0) return { bg: '#ffffff', fg: '#000000' };
   const d = ctx.getImageData(x0, y0, w, h).data, inv = Night.on ? v => 255 - v : v => v;
+  let painted = false; for (let i = 3; i < d.length && !painted; i += 4) painted = d[i] > 0;
+  if (!painted) return { bg: '#ffffff', fg: '#000000' };   // the page is not drawn yet
   const counts = new Map();
   for (let i = 0; i < d.length; i += 4) { const key = (inv(d[i]) >> 3) << 10 | (inv(d[i + 1]) >> 3) << 5 | (inv(d[i + 2]) >> 3); counts.set(key, (counts.get(key) || 0) + 1); }
   let bgKey = 0, best = -1; for (const [key, n] of counts) if (n > best) { best = n; bgKey = key; }

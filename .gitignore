@@ -4,6 +4,5 @@ obj/
 pkg/
 testfiles/
 _to_delete/
-PDF-redaktorius.html
 *.png
 !app/**/*.png

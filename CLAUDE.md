@@ -20,8 +20,8 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
   to get `mark()` results in `%LOCALAPPDATA%\Preview\trace.txt`. In PowerShell put the
   `PREVIEW_EVAL` value in single quotes (double quotes expand `$()`).
 - Timing: `tools\measure.ps1` (cold) and `tools\measure-warm.ps1`. Measure, don't assume.
-- Install for me (per-user, HKCU file types): `build\install.ps1`. A security product blocks
-  HKLM ProgIDs, so Settings can't list Preview as a default app (see `register-machine.ps1`).
+- Install for me: run `dist\Preview-<ver>-Setup.exe` (per-user, HKCU file types, no admin).
+  A security product blocks HKLM ProgIDs, so Settings can't list Preview as a default app.
 - Browser preview of `app/`: launch config `preview-web` in `C:\Dev\.claude\launch.json`.
 - Release (ask first, outward-facing): bump `version.txt`, `.\build.ps1 -Setup`, then
   `gh release create v<ver> dist\Preview-<ver>-Setup.exe --title "Preview <ver>" --notes "..."`.

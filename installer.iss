@@ -44,7 +44,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "startup"; Description: "Start with Windows (files open instantly)"; GroupDescription: "Options:"; Flags: unchecked
 
 [Files]
-Source: "build\*"; DestDir: "{app}"; Excludes: "install.ps1,uninstall.ps1,register-machine.ps1"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "build\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [InstallDelete]
 ; files of the app folder from older versions

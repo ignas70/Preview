@@ -29,7 +29,6 @@ static class BuildInfo { public const string Repo = "$repo"; }
 if ($LASTEXITCODE -ne 0) { throw 'Compilation failed' }
 Copy-Item "$wv\Microsoft.Web.WebView2.Core.dll", "$wv\Microsoft.Web.WebView2.WinForms.dll", 'pkg\wv2\runtimes\win-x64\native\WebView2Loader.dll' build\
 Copy-Item app build\app -Recurse
-Copy-Item install.ps1, uninstall.ps1, register-machine.ps1 build\
 Write-Host "Built build\Preview.exe $version (updates from $repo)"
 if ($Setup) {
   $iscc = @("$env:LOCALAPPDATA\Programs\Inno Setup 7\ISCC.exe", "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe", "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
