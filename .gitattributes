@@ -1,0 +1,10 @@
+# Store and check out text files with LF so git stops warning about
+# LF/CRLF conversion (csc, PowerShell and Inno Setup all read LF fine).
+* text=auto eol=lf
+
+# Binary files: never touch line endings.
+*.png binary
+*.ico binary
+*.ttf binary
+*.woff2 binary
+*.gz binary

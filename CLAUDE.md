@@ -14,7 +14,8 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
 - Run: `.\build\Preview.exe <file>`.
 - All UI tests: `.\tools\run-tests.ps1` (or `-Only <name>`), after `.\build.ps1`. Each test in
   `tools\tests` uses `check(name, ok, detail)` from `_harness.js`; prints PASS/FAIL, exit code =
-  failures. Needs the local `testfiles\` folder.
+  failures. Needs the local `testfiles\` folder (EU DSS and DigiDoc signature samples); git does
+  not track it, so it exists only on my PC.
 - One test / screenshot: `.\tools\snap.ps1 -File <doc> -Out <png> -Script tools\tests\<name>.js`
   (sets `PREVIEW_EVAL`, which `host/DocTab.cs` runs after the page loads). Set `PREVIEW_TRACE=1`
   to get `mark()` results in `%LOCALAPPDATA%\Preview\trace.txt`. In PowerShell put the
@@ -41,3 +42,8 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
 - `snap.ps1` kills any running `Preview.exe` before it starts.
 - The updater reads the GitHub repo from the git remote at build time.
 - `*.png` is git-ignored except under `app/`.
+- The Claude app sees only its own separate copy of Windows settings (installed apps,
+  registry views), so what it reports can differ from what I see in Settings: confirm there.
+- The Bash tool mangles backslashes inside Python heredocs: write the script to a file
+  with the Write tool and run it with `py <file>` instead.
+- Design decisions and known limits are in `docs/decisions.md`.
