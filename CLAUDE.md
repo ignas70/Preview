@@ -12,7 +12,10 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
 - Build app: `.\build.ps1` -> `build\Preview.exe` (downloads the WebView2 SDK on the first build).
 - Build installer: `.\build.ps1 -Setup` -> `dist\Preview-<version>-Setup.exe`.
 - Run: `.\build\Preview.exe <file>`.
-- UI test / screenshot: `.\tools\snap.ps1 -File <doc> -Out <png> -Script tools\tests\<name>.js`
+- All UI tests: `.\tools\run-tests.ps1` (or `-Only <name>`), after `.\build.ps1`. Each test in
+  `tools\tests` uses `check(name, ok, detail)` from `_harness.js`; prints PASS/FAIL, exit code =
+  failures. Needs the local `testfiles\` folder.
+- One test / screenshot: `.\tools\snap.ps1 -File <doc> -Out <png> -Script tools\tests\<name>.js`
   (sets `PREVIEW_EVAL`, which `host/DocTab.cs` runs after the page loads). Set `PREVIEW_TRACE=1`
   to get `mark()` results in `%LOCALAPPDATA%\Preview\trace.txt`. In PowerShell put the
   `PREVIEW_EVAL` value in single quotes (double quotes expand `$()`).

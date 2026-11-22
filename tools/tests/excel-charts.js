@@ -1,7 +1,5 @@
 // Builds an .xlsx with a clustered column chart and a pie chart, opens it and reports what was drawn.
-setTimeout(async () => {
-  const log = m => mark(m);
-  try {
+test(async () => {
     await loadLib('lib/exceljs.min.js'); await loadLib('lib/jszip.min.js');
     const wb = new ExcelJS.Workbook(); const ws = wb.addWorksheet('Sales');
     ws.addRows([['Quarter', 'North', 'South'], ['Q1', 120, 80], ['Q2', 150, 95], ['Q3', 90, 130], ['Q4', 170, 110]]);
@@ -21,6 +19,8 @@ setTimeout(async () => {
     await openFiles([new File([await zip.generateAsync({ type: 'uint8array' })], 'charts.xlsx')], null);
     await new Promise(r => setTimeout(r, 500));
     const svgs = [...document.querySelectorAll('.xlDrawing svg')];
-    log('charts=' + svgs.length + ' :: ' + svgs.map(s => `"${s.querySelector('text').textContent}" rects=${s.querySelectorAll('rect').length} slices=${s.querySelectorAll('path').length}`).join(' | '));
-  } catch (e) { log('ERR ' + e.message + ' ' + String(e.stack).split('\n')[1]); }
-}, 1200);
+    check('both charts are drawn', svgs.length === 2, svgs.length);
+    const title = i => (svgs[i] && svgs[i].querySelector('text') || {}).textContent;
+    check('column chart has its title and bars', title(0) === 'Sales by quarter' && svgs[0].querySelectorAll('rect').length >= 8, title(0) + ' rects=' + (svgs[0] && svgs[0].querySelectorAll('rect').length));
+    check('pie chart has its slices', title(1) === 'North share' && svgs[1].querySelectorAll('path').length >= 4, title(1));
+});
