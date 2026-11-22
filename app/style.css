@@ -485,3 +485,4 @@ body[data-tool=edittext] .page .layer{cursor:text}
 .annot.edit.sel{outline:1px dashed var(--accent)}
 body.night .annot.edit{filter:invert(1) hue-rotate(180deg) contrast(.86)}
 .updActs{display:flex;gap:12px;align-items:center}.updActs label{display:flex}
+.esWarn{color:#da3633;font-size:12px;font-weight:600}.esDoc.unsigned{border-color:rgba(218,54,51,.5)}

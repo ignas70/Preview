@@ -74,9 +74,11 @@ function startEdit(p, a, skipUndo, selectAll) {
   const r = document.createRange(); r.selectNodeContents(c); if (!selectAll) r.collapse(false);
   const s = getSelection(); s.removeAllRanges(); s.addRange(r);
   c.oninput = () => { a.text = c.innerText; };
-  c.onkeydown = ev => { if (ev.key === 'Escape') c.blur(); ev.stopPropagation(); };
+  // the PDF's own text is replaced line by line: Enter finishes instead of starting a new line
+  c.onkeydown = ev => { if (ev.key === 'Escape' || (ev.key === 'Enter' && a.type === 'edit')) { ev.preventDefault(); c.blur(); } ev.stopPropagation(); };
   c.onblur = () => {
     c.contentEditable = 'false'; a.text = c.innerText.replace(/\n$/, '');
+    if (a.type === 'edit') a.text = a.text.replace(/\s*\n\s*/g, ' ');
     if (a.type === 'edit' ? a.text === a.orig : !a.text.trim()) { const i = p.annots.indexOf(a); if (i >= 0) p.annots.splice(i, 1); if (S.annSel?.a === a) S.annSel = null; }
     renderAnnots(p);
   };

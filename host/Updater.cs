@@ -16,15 +16,17 @@ static class Updater
     public static readonly Version Current = typeof(Updater).Assembly.GetName().Version;
     public static string CurrentText { get { return Current.Major + "." + Current.Minor + "." + Current.Build; } }
 
-    public static string LatestVersion, SetupUrl, NotesUrl;
+    public static string LatestVersion, SetupUrl;
     public static long SetupSize;
     public static bool Available { get { return SetupUrl != null; } }
     public static bool Auto = true;                     // check by itself (settings.txt "updates=0" turns it off)
     static Timer timer;
     static string announced;
 
+    // (re)starts or stops the automatic checks to match Auto
     public static void Start()
     {
+        if (timer != null) { timer.Stop(); timer.Dispose(); timer = null; }
         if (!Auto || Repo.StartsWith("OWNER")) return;
         timer = new Timer { Interval = 20 * 1000 };     // shortly after start, then twice a day
         timer.Tick += async (s, e) => { timer.Interval = 12 * 60 * 60 * 1000; await Check(); };
@@ -61,7 +63,7 @@ static class Updater
             }
             Program.Trace("update check: latest " + v + ", current " + Current);
             if (v <= Normalize(Current) || url == null || !url.StartsWith("https://github.com/")) { SetupUrl = null; LatestVersion = tag; return null; }
-            LatestVersion = tag; SetupUrl = url; SetupSize = size; NotesUrl = rel.ContainsKey("html_url") ? rel["html_url"].ToString() : null;
+            LatestVersion = tag; SetupUrl = url; SetupSize = size;
             if (announced != tag) { announced = tag; Program.Invoker.BeginInvoke(new Action(Announce)); }
             return null;
         }
@@ -71,7 +73,7 @@ static class Updater
 
     static void Announce()
     {
-        var msg = new Dictionary<string, object> { { "cmd", "updateAvailable" }, { "version", LatestVersion }, { "notes", NotesUrl } };
+        var msg = new Dictionary<string, object> { { "cmd", "updateAvailable" }, { "version", LatestVersion } };
         foreach (var w in Program.Windows.ToArray()) foreach (var t in w.Tabs.ToArray()) t.Post(msg);
     }
 
@@ -79,6 +81,14 @@ static class Updater
     public static async Task<string> Install()
     {
         if (!Available) return "no update available";
+        // Preview closes for the update: edited PDFs in any tab must be saved first
+        foreach (var w in Program.Windows.ToArray())
+            foreach (var t in w.Tabs.ToArray())
+            {
+                string dirty = "false";
+                try { dirty = await t.Web.CoreWebView2.ExecuteScriptAsync("!!(window.isDirty && window.isDirty())"); } catch { }
+                if (dirty == "true") return "save or close the edited PDFs first";
+            }
         string file = Path.Combine(Path.GetTempPath(), "Preview-" + LatestVersion + "-Setup.exe");
         try
         {

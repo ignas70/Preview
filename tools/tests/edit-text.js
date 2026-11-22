@@ -22,6 +22,13 @@ test(async () => {
   await clickOn(lines[1]); await sleep(100);
   document.activeElement.blur();
   check('an edit left unchanged is dropped', p.annots.filter(x => x.type === 'edit').length === 2);
+  const l3 = lines.find(x => x !== title && x !== l2 && x.str.length > 20 && x.base > l2.base);
+  await clickOn(l3); await sleep(100);
+  const ed = document.activeElement;
+  ed.textContent = 'Changed';
+  ed.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+  check('Enter finishes editing a line instead of adding one', document.activeElement !== ed && !p.annots.some(x => x.type === 'edit' && /\n/.test(x.text)));
+  check('third edit kept', p.annots.filter(x => x.type === 'edit').length === 3);
 
   Profile.set({ name: 'Jonas Jonaitis', asked: true });
   const labels = stampItems().filter(x => x !== '-').map(x => x.label);

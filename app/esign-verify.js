@@ -48,7 +48,15 @@ function parseCert(der) {
   return { der, serial, issuer, subject, notBefore: asnTime(validity[0]), notAfter: asnTime(validity[1]), spki: spki.raw, keyAlg, curve };
 }
 const b64ToBytes = s => Uint8Array.from(atob(s.replace(/\s+/g, '')), c => c.charCodeAt(0));
-const bytesToB64 = b => { let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
+// A certificate that names itself as its issuer was made by the signer, so the name in it proves nothing;
+// test certificates (e.g. "TEST of ESTEID-SK 2015") are not real signatures either.
+function certTrustNote(cert) {
+  if (!cert) return null;
+  const same = ['CN', 'O', 'C', 'serialNumber'].every(k => (cert.issuer[k] || '') === (cert.subject[k] || ''));
+  if (same) return 'self-made';
+  if (/\btest\b/i.test(cert.issuer.CN || '') || /\btest\b/i.test(cert.issuer.O || '')) return 'test';
+  return null;
+}
 const sameBytes = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 
 const CURVES = { '1.2.840.10045.3.1.7': ['P-256', 32], '1.3.132.0.34': ['P-384', 48], '1.3.132.0.35': ['P-521', 66] };
@@ -118,13 +126,14 @@ async function readContainer(bytes) {
     const dom = new DOMParser().parseFromString(await zip.file(sf).async('string'), 'application/xml');
     for (const s of dom.getElementsByTagNameNS('http://www.w3.org/2000/09/xmldsig#', 'Signature')) sigs.push(await checkXadesSignature(s, files));
   }
-  return { docs: docs.map(n => ({ name: n, bytes: files.get(n) })), sigs };
+  // a file is signed only when every signature covers it (files can be added to the zip later)
+  return { docs: docs.map(n => ({ name: n, bytes: files.get(n), signed: sigs.length > 0 && sigs.every(s => s.files.includes(n)) })), sigs };
 }
 async function checkXadesSignature(sigEl, files) {
   const DS = 'http://www.w3.org/2000/09/xmldsig#';
   const q = (e, ns, n) => e ? e.getElementsByTagNameNS(ns, n)[0] : null;
   const qx = (e, n) => e ? e.getElementsByTagNameNS('*', n)[0] : null;
-  const r = { signer: null, time: null, problems: [], docsOk: null, sigOk: null, level: [] };
+  const r = { time: null, problems: [], docsOk: null, sigOk: null, level: [], files: [] };
   try {
     const certB64 = (q(sigEl, DS, 'X509Certificate') || {}).textContent;
     if (certB64) r.cert = parseCert(b64ToBytes(certB64));
@@ -143,14 +152,18 @@ async function checkXadesSignature(sigEl, files) {
       if (!hash) { r.problems.push('Unsupported digest algorithm'); ok = false; continue; }
       let data;
       if (uri.startsWith('#')) {
-        const id = uri.slice(1), target = [...sigEl.ownerDocument.getElementsByTagName('*')].find(x => x.getAttribute('Id') === id);
-        if (!target) { r.problems.push('Signed properties missing'); ok = false; continue; }
+        // looked up inside this signature only, and it must be unique: otherwise a different block
+        // than the one that is displayed could be the one that gets checked
+        const id = uri.slice(1), found = [...sigEl.getElementsByTagName('*')].filter(x => x.getAttribute('Id') === id);
+        if (found.length !== 1) { r.problems.push(found.length ? 'Signature details are ambiguous' : 'Signed properties missing'); ok = false; continue; }
+        const target = found[0];
         const tr = [...ref.getElementsByTagNameNS(DS, 'Transform')].map(t => t.getAttribute('Algorithm') || '').join(' ');
         data = c14n(target, /exc-c14n/.test(tr));
       } else {
         let name = uri; try { name = decodeURIComponent(uri); } catch { }
         data = files.get(name) || files.get(uri);
         if (!data) { r.problems.push(`Signed file "${name}" is missing from the container`); ok = false; continue; }
+        r.files.push(files.has(name) ? name : uri);
       }
       if (!sameBytes(await digest(hash, data), want)) { ok = false; r.problems.push(uri.startsWith('#') ? 'Signature details were altered' : `"${decodeURIComponent(uri)}" was changed after signing`); }
     }
@@ -164,6 +177,7 @@ async function checkXadesSignature(sigEl, files) {
     } else r.problems.push('Unsupported signature method');
   } catch (e) { r.problems.push('Could not read signature: ' + e.message); }
   if (r.cert && r.time && (r.time < r.cert.notBefore || r.time > r.cert.notAfter)) r.problems.push('Certificate was not valid at the signing time');
+  r.trust = certTrustNote(r.cert);
   return r;
 }
 
@@ -184,10 +198,10 @@ async function checkPkcs7(p7, signedData) {
   const hashName = HASH_OIDS[oidStr(kids(f[i++])[0].body)] || 'SHA-256';
   let attrs = null; if (f[i].tag === 0xa0) attrs = f[i++];
   const sigAlg = oidStr(kids(f[i++])[0].body), sig = f[i++].body;
-  // signer certificate: issuer + serial, or subject key identifier
-  let cert = certs[0];
-  if (sid.tag === 0x30) { const [, serial] = kids(sid); cert = certs.find(c => sameBytes(c.serial, serial.body)) || cert; }
-  r.cert = cert;
+  // signer certificate: matched by issuer + serial; otherwise (subject key identifier) the one that verifies
+  let cands = certs;
+  if (sid.tag === 0x30) { const [, serial] = kids(sid), hit = certs.find(c => sameBytes(c.serial, serial.body)); if (hit) cands = [hit]; }
+  r.cert = cands[0];
   let md = null;
   if (attrs) for (const a of kids(attrs)) {
     const [t, vals] = kids(a), oid = oidStr(t.body), v = kids(vals)[0];
@@ -206,13 +220,17 @@ async function checkPkcs7(p7, signedData) {
     r.docsOk = md ? sameBytes(await digest(hashName, signedData), md) : null;
   }
   if (r.docsOk === false) r.problems.push('The document was changed after this ' + (r.isTimestamp ? 'time-stamp' : 'signature'));
-  if (cert) {
-    const kind = sigAlg === '1.2.840.113549.1.1.10' ? 'pss' : 'rsa';
-    let data = signedData;
-    if (attrs) { data = new Uint8Array(attrs.raw); data[0] = 0x31; }   // signature covers the attributes as a SET
-    try { r.sigOk = await verifySig(cert, hashName, kind, sig, data); if (!attrs && r.sigOk) r.docsOk = true; }
-    catch (e) { r.problems.push('Signature could not be checked (' + e.message + ')'); }
+  const kind = sigAlg === '1.2.840.113549.1.1.10' ? 'pss' : 'rsa';
+  let data = signedData;
+  if (attrs) { data = new Uint8Array(attrs.raw); data[0] = 0x31; }   // signature covers the attributes as a SET
+  let err = null;
+  for (const c of cands) {
+    try { r.sigOk = await verifySig(c, hashName, kind, sig, data); err = null; } catch (e) { err = e; }
+    if (r.sigOk) { r.cert = c; break; }
   }
+  if (err && !r.sigOk) r.problems.push('Signature could not be checked (' + err.message + ')');
+  if (!attrs && r.sigOk) r.docsOk = true;
+  r.trust = certTrustNote(r.cert);
   return r;
 }
 // pdf: the pdf.js document; getBytes: loads the file only when it has signature fields
@@ -244,7 +262,19 @@ async function pdfSignatures(pdf, getBytes) {
     if (!r.time) { const m = txt('M'); const mm = /D:(\d{4})(\d\d)(\d\d)(\d\d)?(\d\d)?(\d\d)?/.exec(m); if (mm) r.time = new Date(Date.UTC(+mm[1], +mm[2] - 1, +mm[3], +(mm[4] || 0), +(mm[5] || 0), +(mm[6] || 0))); }
     const end = ranges[ranges.length - 2] + ranges[ranges.length - 1];
     r.coversAll = end >= bytes.length - 2;
+    r.end = end;
     out.push(r);
   }
+  if (out.length) out.after = changesAfter(bytes, Math.max(...out.map(r => r.end || 0)));
   return out;
+}
+// What was appended after the newest signature or time-stamp: 'none'; 'validation' when it is only
+// long-term validation data (certificates, OCSP/CRL answers in /DSS, which PAdES-LT adds on purpose);
+// 'changes' when pages, comments or form values were touched; 'unknown' when it is packed and can't be read.
+function changesAfter(bytes, end) {
+  if (end >= bytes.length - 2) return 'none';
+  const tail = new TextDecoder('latin1').decode(bytes.subarray(end));
+  if (/\/Type\s*\/Page\b|\/Annots\b|\/V\s*[(<\[\/]/.test(tail)) return 'changes';
+  if (/\/ObjStm\b/.test(tail)) return 'unknown';
+  return /\/DSS\b/.test(tail) ? 'validation' : 'unknown';
 }

@@ -17,7 +17,6 @@ function showUpdateState(r) {
   $('#updBtn').classList.toggle('primary', !!r.latest);
 }
 async function installUpdate() {
-  if (dirty && !confirm('Unsaved PDF changes will be lost. Update now?')) return;
   busy('Downloading the update…');
   const r = await hostCall('installUpdate');
   busy(false);

@@ -128,7 +128,7 @@ async function showDoc(f, ext, kind) {
     else if (kind === 'apple') await renderApple(f, inner, ext);
     else if (kind === 'google') await renderGoogle(f, inner, ext);
     else if (kind === 'legacy') await renderLegacy(f, inner, ext);
-    else if (kind === 'esign') await renderContainer(f, inner, ext);
+    else if (kind === 'esign') await renderContainer(f, inner);
     else if (kind === 'text') { const pre = el('pre', 'txt'); pre.textContent = await f.text(); inner.append(pre); }
     else if (kind === 'old') { inner.className = 'center'; msgCard(inner, '\uE8A5', 'Legacy file format', `.${ext} files can't be previewed. Open it with another app or save it in a newer format (.docx, .xlsx, .pptx).`, true); }
     else { inner.className = 'center'; msgCard(inner, '\uE9CE', 'Unsupported file type', `"${f.name}" can't be shown in Preview.`, true); }

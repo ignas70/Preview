@@ -257,7 +257,7 @@ class DocTab
                 case "setSetting":
                     if (Str(m, "name") == "tabs") { Settings.Tabs = Str(m, "value") == "True"; Settings.Save(); }
                     if (Str(m, "name") == "startup") Settings.SetStartup(Str(m, "value") == "True");
-                    if (Str(m, "name") == "updates") { Settings.AutoUpdate = Updater.Auto = Str(m, "value") == "True"; Settings.Save(); if (Updater.Auto) Updater.Start(); }
+                    if (Str(m, "name") == "updates") { Settings.AutoUpdate = Updater.Auto = Str(m, "value") == "True"; Settings.Save(); Updater.Start(); }
                     reply["tabs"] = Settings.Tabs; reply["startup"] = Settings.Startup; reply["updates"] = Settings.AutoUpdate;
                     break;
             }

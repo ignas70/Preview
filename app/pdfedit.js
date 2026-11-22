@@ -155,6 +155,7 @@ function editEl(p, a, isSel) {
   const z = S.zoom, e = el('div', 'annot edit' + (isSel ? ' sel' : ''));
   e.dataset.id = a.id; e.style.left = a.x * z + 'px'; e.style.top = a.y * z + 'px';
   e.style.minWidth = a.w * z + 'px'; e.style.height = a.h * z + 'px'; e.style.background = a.bg;
+  if (a.rot) e.style.transform = `rotate(${a.rot}deg)`;   // the page was rotated after editing
   const c = el('div', 'content'); c.textContent = a.text;
   Object.assign(c.style, { fontSize: a.size * z + 'px', color: a.color, fontFamily: FAM_CSS[a.fam], fontWeight: a.bold ? '700' : '400', fontStyle: a.italic ? 'italic' : 'normal',
     lineHeight: a.size * z + 'px', paddingTop: Math.max(0, (a.base - a.size * 0.845) * z) + 'px', paddingLeft: z + 'px', paddingRight: z + 'px' });
