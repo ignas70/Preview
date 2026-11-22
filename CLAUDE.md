@@ -47,3 +47,6 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
 - The Bash tool mangles backslashes inside Python heredocs: write the script to a file
   with the Write tool and run it with `py <file>` instead.
 - Design decisions and known limits are in `docs/decisions.md`.
+
+## Shared coding rules
+@../claude-workspace/PROJECTS/claude-code/coding-rules.md
