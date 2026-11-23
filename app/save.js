@@ -115,22 +115,36 @@ async function save(pages = S.pages, suffix = '-edited', opts = {}) {
   const extra = res.compressed ? (res.compressed.count ? ` · ${res.compressed.count} pictures recompressed, ${(res.compressed.saved / 1048576).toFixed(1)} MB smaller` : ' · nothing left to compress') : '';
   toast((res.rasterized ? 'Saved. Pages of the protected PDF were saved as images.' : `Saved ${shown}`) + extra, 4500);
 }
-async function downloadFile(bytes, name) {
+const PDF_FILE = { label: 'PDF document', ext: 'pdf', mime: 'application/pdf' };
+const MD_FILE = { label: 'Markdown document', ext: 'md', mime: 'text/markdown' };
+async function downloadFile(bytes, name, type = PDF_FILE) {
   if (host) {
-    const r = await hostCall('saveAs', { name, dir: Cur.path ? dirOf(Cur.path) : '', data: toB64(bytes), filter: 'PDF document|*.pdf' });
+    const r = await hostCall('saveAs', { name, dir: Cur.path ? dirOf(Cur.path) : '', data: toB64(bytes), filter: `${type.label}|*.${type.ext}` });
     if (r.error) { toast('Could not save: ' + r.error, 5000); return false; }
     return r.path || false;
   }
   if (window.showSaveFilePicker) {
     try {
-      const h = await showSaveFilePicker({ suggestedName: name, types: [{ description: 'PDF document', accept: { 'application/pdf': ['.pdf'] } }] });
+      const h = await showSaveFilePicker({ suggestedName: name, types: [{ description: type.label, accept: { [type.mime]: ['.' + type.ext] } }] });
       const w = await h.createWritable(); await w.write(bytes); await w.close(); return true;
     } catch (e) { if (e.name === 'AbortError') return false; console.warn(e); }
   }
-  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+  const url = URL.createObjectURL(new Blob([bytes], { type: type.mime }));
   const a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
   return true;
+}
+
+async function exportMarkdown() {
+  if (!S.pages.length) return;
+  busy('Converting to Markdown…');
+  let md;
+  try { await loadLib('pdf2md.js'); md = await pdfMarkdown(S.pages); }
+  catch (e) { console.error(e); toast('Could not convert: ' + e.message, 5000); return; }
+  finally { busy(false); }
+  if (!md.trim()) { toast('This PDF has no text to export. Scanned pages need Recognize text (OCR) first.', 5000); return; }
+  const saved = await downloadFile(new TextEncoder().encode(md), S.fileName + '.md', MD_FILE);
+  if (saved) toast('Saved ' + (typeof saved === 'string' ? saved.split(/[\\/]/).pop() : S.fileName + '.md'), 4500);
 }
 
 

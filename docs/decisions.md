@@ -43,3 +43,18 @@ Why Preview behaves the way it does, so later changes keep these choices on purp
   opened the file and when; it is shown as a link instead. Local and embedded pictures are shown.
 - **Open with only.** The installer offers Preview for `.md` under "Open with" but never makes it
   the default, since people usually edit Markdown in a text editor.
+
+## PDF → Markdown (`app/pdf2md.js`)
+
+- **The structure is guessed from how the text looks**, because a PDF only stores where each
+  piece of text is drawn: bigger text is a heading (up to 4 levels by size), lines close together
+  are one paragraph, "•" or "1." starts a list item, a typewriter font is code. A long line that
+  ends like a sentence is never a heading.
+- **Running headers, footers and page numbers are dropped** when the same line is at the top or
+  bottom of most pages (3 pages or more); tiny footnote marks (∗, †, 1) are dropped too.
+- **Two-column pages are read column by column.** Lines that cross the middle split the page
+  into bands, and each band is read left column first.
+- **Scanned pages use the recognised OCR text**, so OCR has to run first; without any text the
+  export says so instead of saving an empty file.
+- **Known limits:** tables come out as plain lines, pictures are left out, bold or italic inside a
+  line is lost, and pages with three or more columns are read across.

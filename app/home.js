@@ -123,6 +123,7 @@ $('#btnPdfMore').addEventListener('click', e => showMenu(e.currentTarget, [
   { icon: '', label: 'Save a copy…', key: 'Ctrl+S', run: () => save() },
   { icon: '', label: 'Save a compressed copy…', run: () => save(S.pages, '-compressed', { compress: true }) },
   { icon: '', label: 'Save a flattened copy…', run: () => save(S.pages, '-flattened', { flatten: true }) },
+  { icon: '', label: 'Export as Markdown…', run: exportMarkdown },
   '-',
   { icon: '', label: 'Insert blank page', run: () => { setEditing(true); insertBlankPage(); } },
   { icon: '', label: 'Add PDFs or images…', run: () => { setEditing(true); $('#fileAdd').click(); } },

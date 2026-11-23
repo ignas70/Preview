@@ -27,6 +27,10 @@ test(async () => {
     check(`search finds "${q}"`, /[1-9]/.test(document.querySelector('#findCount').textContent), document.querySelector('#findCount').textContent);
   }
   check('recognised text can be selected', S.pages[1].el.querySelectorAll('.textLayer span').length > 5);
+  await loadLib('pdf2md.js');
+  const md = await pdfMarkdown(S.pages);
+  check('Markdown export uses the recognised text', md.includes('ąžuolinių') && md.includes('Vilniuje'), md.slice(-160).replace(/\n/g, ' / '));
+  check('recognised sentences are not turned into headings', !/^#+ .*(ąžuolinių|Vilniuje)/m.test(md), md.slice(-160).replace(/\n/g, ' / '));
   const res = await buildPdf(S.pages);
   const chk = await pdfjsLib.getDocument({ data: res.bytes.slice() }).promise;
   const saved = (await (await chk.getPage(2)).getTextContent()).items.map(i => i.str).join(' ');

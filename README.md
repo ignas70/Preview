@@ -8,7 +8,7 @@ A fast document viewer for Windows that can also edit and sign PDFs, similar to 
 
 | Kind | Formats |
 |---|---|
-| PDF | `.pdf`, including password-protected files, forms and very large files (loaded in ranges) |
+| PDF | `.pdf`, including password-protected files, forms and very large files (loaded in ranges); export to Markdown |
 | Word | `.docx` `.docm` `.dotx`, older `.doc` `.rtf` `.odt` |
 | Spreadsheets | `.xlsx` `.xlsm` `.xlsb` `.xls` `.ods` `.csv`, with cell styles and charts |
 | Presentations | `.pptx` `.ppsx` `.potx`, older `.ppt` `.pps` `.odp`, with full-screen presenting |
