@@ -139,7 +139,7 @@ function addRecent(p) {
   const l = getRecent().filter(x => x.toLowerCase() !== p.toLowerCase()); l.unshift(p);
   try { localStorage.setItem('preview.recent', JSON.stringify(l.slice(0, 12))); } catch { }
 }
-const KIND_NAMES = { pdf: 'PDF document', docx: 'Word document', sheet: 'Spreadsheet', numbers: 'Numbers spreadsheet', pptx: 'PowerPoint presentation', apple: 'Apple document', google: 'Google link', text: 'Text file', old: 'Legacy document', esign: 'Signed container' };
+const KIND_NAMES = { pdf: 'PDF document', docx: 'Word document', sheet: 'Spreadsheet', numbers: 'Numbers spreadsheet', pptx: 'PowerPoint presentation', apple: 'Apple document', google: 'Google link', text: 'Text file', markdown: 'Markdown document', old: 'Legacy document', esign: 'Signed container' };
 function badgeFor(ext) {
   const k = EXT[ext], b = el('span', 'badge');
   const legacy = /^(doc|dot|rtf|odt)$/.test(ext) ? ['word', 'W'] : /^(ppt|pps|odp)$/.test(ext) ? ['ppt', 'P'] : null;

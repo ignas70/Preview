@@ -341,6 +341,26 @@ table.grid td.n{text-align:right;font-variant-numeric:tabular-nums}
 .iwDoc h2{font:600 22px/1.3 "Segoe UI Variable Display","Segoe UI",sans-serif;margin:.9em 0 .3em}
 .iwDoc h3{font:600 18px/1.3 "Segoe UI Variable Display","Segoe UI",sans-serif;margin:.8em 0 .3em}
 .iwDoc p{margin:0 0 .8em;white-space:pre-wrap}
+.mdDoc{background:#fff;color:#1d1d1f;max-width:860px;margin:0 auto 24px;padding:clamp(22px,5vw,48px) clamp(18px,6vw,56px);box-shadow:var(--page-shadow);font:15px/1.6 "Segoe UI Variable Text","Segoe UI",sans-serif;user-select:text;word-wrap:break-word}
+.mdDoc>:first-child{margin-top:0}
+.mdDoc h1,.mdDoc h2,.mdDoc h3,.mdDoc h4,.mdDoc h5,.mdDoc h6{font-family:"Segoe UI Variable Display","Segoe UI",sans-serif;font-weight:600;line-height:1.3;margin:1.2em 0 .4em}
+.mdDoc h1{font-size:28px;padding-bottom:.25em;border-bottom:1px solid #e3e3e6}
+.mdDoc h2{font-size:22px;padding-bottom:.2em;border-bottom:1px solid #ececef}
+.mdDoc h3{font-size:18px}.mdDoc h4{font-size:16px}.mdDoc h5,.mdDoc h6{font-size:14px;color:#6e6e73}
+.mdDoc p,.mdDoc ul,.mdDoc ol,.mdDoc blockquote,.mdDoc pre,.mdDoc .mdTable{margin:0 0 .9em}
+.mdDoc ul,.mdDoc ol{padding-left:1.7em}.mdDoc li>ul,.mdDoc li>ol{margin:.2em 0}
+.mdDoc li.task{list-style:none;margin-left:-1.4em}.mdDoc li.task>input{margin:0 .45em 0 0;vertical-align:-2px}
+.mdDoc a{color:#0067c0;text-decoration:none;cursor:pointer}.mdDoc a:hover{text-decoration:underline}
+.mdDoc .mdImgLink{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:6px;background:#f3f3f3;font-size:13px}
+.mdDoc code{font:13px "Cascadia Mono",Consolas,monospace;background:#f3f3f5;padding:1px 5px;border-radius:4px}
+.mdDoc pre{background:#f6f6f8;padding:12px 14px;border-radius:8px;overflow:auto}
+.mdDoc pre code{background:none;padding:0;white-space:pre}
+.mdDoc blockquote{margin-left:0;padding:0 0 0 14px;border-left:3px solid #d2d2d7;color:#55555a}
+.mdDoc hr{border:0;border-top:1px solid #e3e3e6;margin:1.5em 0}
+.mdDoc img{max-width:100%}
+.mdDoc .mdTable{overflow:auto}
+.mdDoc table{border-collapse:collapse}
+.mdDoc th,.mdDoc td{border:1px solid #dcdce0;padding:5px 11px}.mdDoc th{background:#f5f5f7;font-weight:600}
 .iwDoc p.cap{color:#6b7280;font-size:14px}
 .iwDoc blockquote{margin:0 0 .8em;padding-left:14px;border-left:3px solid #c7ccd4;font-style:italic;white-space:pre-wrap}
 .iwDoc img{max-width:100%;display:block;margin:12px auto}
@@ -365,6 +385,12 @@ body.night .docx-wrapper>section.docx{filter:invert(1) hue-rotate(180deg) contra
 body.night .docx-wrapper img,body.night .docx-wrapper svg,body.night .docx-wrapper canvas{filter:invert(1) hue-rotate(180deg)}
 body.night pre.txt,body.night .iwDoc{background:#1b1c1f;color:#d5d8dd}
 body.night .iwDoc h1,body.night .iwDoc h2,body.night .iwDoc h3{color:#eef0f3}
+body.night .mdDoc{background:#1b1c1f;color:#d5d8dd}
+body.night .mdDoc h1,body.night .mdDoc h2,body.night .mdDoc h3,body.night .mdDoc h4{color:#eef0f3;border-color:#333338}
+body.night .mdDoc code,body.night .mdDoc pre,body.night .mdDoc th,body.night .mdDoc .mdImgLink{background:#26272b}
+body.night .mdDoc th,body.night .mdDoc td,body.night .mdDoc hr{border-color:#38393e}
+body.night .mdDoc blockquote{border-color:#45464c;color:#a9acb2}
+body.night .mdDoc a{color:#4ea1ff}
 body.night .thumb canvas{background:var(--night-page)}
 /* greyscale text smoothing at night: ClearType's coloured edges turn into a magenta glow once inverted */
 body.night #docInner,body.night .layer{opacity:.999}

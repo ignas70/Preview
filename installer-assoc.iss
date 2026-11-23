@@ -181,3 +181,12 @@ Root: HKA; Subkey: "Software\Classes\.edoc\OpenWithProgids"; ValueType: string; 
 Root: HKA; Subkey: "Software\Preview\Capabilities\FileAssociations"; ValueType: string; ValueName: ".edoc"; ValueData: "Preview.Signed"
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; ValueType: string; ValueName: ".edoc"; ValueData: ""
 Root: HKA; Subkey: "Software\Classes\.edoc"; ValueType: string; ValueName: ""; ValueData: "Preview.Signed"; Check: NoHandler('.edoc')
+
+; Markdown: offered under "Open with" only, never made the default (people usually edit .md in a text editor)
+Root: HKA; Subkey: "Software\Classes\Preview.Markdown"; ValueType: string; ValueName: ""; ValueData: "Markdown Document"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Preview.Markdown\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"",0"
+Root: HKA; Subkey: "Software\Classes\Preview.Markdown\shell\open"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "{#AppName}"
+Root: HKA; Subkey: "Software\Classes\Preview.Markdown\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\.md\OpenWithProgids"; ValueType: string; ValueName: "Preview.Markdown"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Preview\Capabilities\FileAssociations"; ValueType: string; ValueName: ".md"; ValueData: "Preview.Markdown"
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; ValueType: string; ValueName: ".md"; ValueData: ""

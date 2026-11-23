@@ -28,7 +28,18 @@ Why Preview behaves the way it does, so later changes keep these choices on purp
   version of the XML signature rules, enough for the EU DSS and DigiDoc samples in
   `testfiles\`, not a full implementation.
 - **Edit text keeps the original underneath.** Editing a line of the PDF's own text covers it
-  with its background colour and types the new text on top (`app/pdfedit.js`); the old text
+  with its background colour and types the new text on top (`app/pdfedit-core.js`); the old text
   is still in the file and can be found by copying or text extraction.
 - **The installer is not code-signed**, so Windows SmartScreen shows a warning the first time
   it runs.
+
+## Markdown (`app/markdown.js`, `app/markdown-view.js`)
+
+- **Own small parser instead of a library.** It covers what notes and READMEs use (headings,
+  lists, task lists, quotes, code, tables, links, pictures) without a new dependency.
+- **HTML inside a .md file is shown as text, never run.** The app can read local files, so a
+  script hidden in a Markdown file must not get a chance to run; links never run `javascript:`.
+- **Web pictures are not downloaded.** A picture from the internet could tell its owner who
+  opened the file and when; it is shown as a link instead. Local and embedded pictures are shown.
+- **Open with only.** The installer offers Preview for `.md` under "Open with" but never makes it
+  the default, since people usually edit Markdown in a text editor.

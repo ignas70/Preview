@@ -9,7 +9,7 @@ const EXT = {
   pptx: 'pptx', ppsx: 'pptx', potx: 'pptx', pptm: 'pptx',
   pages: 'apple', key: 'apple',
   gdoc: 'google', gsheet: 'google', gslides: 'google', gform: 'google', gdraw: 'google',
-  txt: 'text', md: 'text', log: 'text', json: 'text', xml: 'text', ini: 'text',
+  txt: 'text', md: 'markdown', markdown: 'markdown', log: 'text', json: 'text', xml: 'text', ini: 'text',
   jpg: 'image', jpeg: 'image', png: 'image', gif: 'image', webp: 'image', bmp: 'image',
   asice: 'esign', sce: 'esign', bdoc: 'esign', adoc: 'esign', edoc: 'esign',
   doc: 'legacy', dot: 'legacy', ppt: 'legacy', pps: 'legacy', odt: 'legacy', odp: 'legacy', rtf: 'legacy', wps: 'old',
@@ -129,6 +129,7 @@ async function showDoc(f, ext, kind) {
     else if (kind === 'google') await renderGoogle(f, inner, ext);
     else if (kind === 'legacy') await renderLegacy(f, inner, ext);
     else if (kind === 'esign') await renderContainer(f, inner);
+    else if (kind === 'markdown') { await loadLib('markdown.js'); await loadLib('markdown-view.js'); renderMarkdown(await f.text(), inner, Cur.path ? dirOf(Cur.path) : ''); }
     else if (kind === 'text') { const pre = el('pre', 'txt'); pre.textContent = await f.text(); inner.append(pre); }
     else if (kind === 'old') { inner.className = 'center'; msgCard(inner, '\uE8A5', 'Legacy file format', `.${ext} files can't be previewed. Open it with another app or save it in a newer format (.docx, .xlsx, .pptx).`, true); }
     else { inner.className = 'center'; msgCard(inner, '\uE9CE', 'Unsupported file type', `"${f.name}" can't be shown in Preview.`, true); }

@@ -16,6 +16,7 @@ A fast document viewer for Windows that can also edit and sign PDFs, similar to 
 | Google | `.gdoc` `.gsheet` `.gslides` (downloads the document behind the link) |
 | E-signatures | `.asice` `.bdoc` `.adoc` `.edoc` `.sce` containers (Smart-ID, Mobile-ID, ID card), and digitally signed PDFs |
 | Images | `.jpg` `.png` `.gif` `.webp` `.bmp` |
+| Text | `.md` (shown formatted), `.txt` `.log` `.json` `.xml` `.ini` |
 
 ## PDF editing
 

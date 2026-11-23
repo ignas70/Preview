@@ -18,8 +18,8 @@ class DocTab
     public const string AppHost = "https://app.preview/";
     const string Cors = "Access-Control-Allow-Origin: https://app.preview\r\nCache-Control: no-store";
     const string OpenFilter =
-        "All supported files|*.pdf;*.docx;*.docm;*.dotx;*.doc;*.rtf;*.odt;*.xlsx;*.xlsm;*.xlsb;*.xls;*.ods;*.csv;*.numbers;*.pptx;*.ppsx;*.potx;*.ppt;*.pps;*.odp;*.pages;*.key;*.gdoc;*.gsheet;*.gslides;*.txt;*.jpg;*.jpeg;*.png;*.gif;*.webp;*.bmp" +
-        "|PDF|*.pdf|Word and text|*.docx;*.docm;*.dotx;*.doc;*.rtf;*.odt;*.txt|Spreadsheets|*.xlsx;*.xlsm;*.xlsb;*.xls;*.ods;*.csv;*.numbers" +
+        "All supported files|*.pdf;*.docx;*.docm;*.dotx;*.doc;*.rtf;*.odt;*.xlsx;*.xlsm;*.xlsb;*.xls;*.ods;*.csv;*.numbers;*.pptx;*.ppsx;*.potx;*.ppt;*.pps;*.odp;*.pages;*.key;*.gdoc;*.gsheet;*.gslides;*.txt;*.md;*.jpg;*.jpeg;*.png;*.gif;*.webp;*.bmp" +
+        "|PDF|*.pdf|Word and text|*.docx;*.docm;*.dotx;*.doc;*.rtf;*.odt;*.txt;*.md|Spreadsheets|*.xlsx;*.xlsm;*.xlsb;*.xls;*.ods;*.csv;*.numbers" +
         "|Presentations|*.pptx;*.ppsx;*.potx;*.ppt;*.pps;*.odp|Apple (Pages, Numbers, Keynote)|*.pages;*.numbers;*.key|Google|*.gdoc;*.gsheet;*.gslides" +
         "|Images (turned into a PDF)|*.jpg;*.jpeg;*.png;*.gif;*.webp;*.bmp|All files|*.*";
 
