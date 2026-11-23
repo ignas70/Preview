@@ -33,8 +33,8 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
 - `testfiles/` (sample documents, may be private).
 
 ## Conventions
-- UI is English and must look like my other apps (Shot, APFS Reader): see "My desktop apps"
-  in the global CLAUDE.md.
+- UI is English and must look like my other apps (Shot, APFS Reader): see "UI and UX"
+  in `C:\Dev\CLAUDE.md`.
 - Keep `app/` dependency-free: no npm, no build step for the UI.
 - One feature per commit; version lives in `version.txt`.
 
@@ -43,6 +43,3 @@ Fast document viewer and PDF editor for Windows (PDF, Office, images; PDF editin
 - The updater reads the GitHub repo from the git remote at build time.
 - `*.png` is git-ignored except under `app/`.
 - Design decisions and known limits are in `docs/decisions.md`.
-
-## Shared coding rules
-@../claude-workspace/PROJECTS/claude-code/coding-rules.md
